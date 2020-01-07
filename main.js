@@ -5,9 +5,10 @@ var langs = require("langs");
 var cheerio = require("cheerio");
 const convert3To1 = require("iso-639-3-to-1");
 
-const iso63931_to_iso63933 = {};
+// const iso63931_to_iso63933 = {};
+const iso63933_to_name = {};
 langs.all().forEach(each => {
-  // console.log(each);
+  iso63933_to_name[each["1"]] = each.name;
 });
 
 function walker(root, callback) {
@@ -30,7 +31,7 @@ function walker(root, callback) {
 
 const EXCLUDE_ARCHIVED = true;
 const ROOT = "/Users/peterbe/stumptown-renderer/content/files";
-// const LOCALES = ["sv-SE", "de", "es"];
+// const LOCALES = ["sv-SE", "es"];
 const LOCALES = [];
 // const LOCALES = ["en-US"];
 // const LOCALES = ["sv-SE"];
@@ -51,6 +52,7 @@ function getRootFolders() {
 function run() {
   let totalRight = 0;
   let totalWrong = 0;
+  const results = [];
   getRootFolders().forEach(filepath => {
     let wasEn = 0;
     let right = 0;
@@ -149,17 +151,37 @@ function run() {
       }
     });
 
+    const name = iso63933_to_name[correct] || correct;
     const p = (100 * right) / (right + wrong);
     console.log(
       `${correct}: right ${p.toFixed(
         1
-      )}% of the time (${right.toLocaleString()} right. ${wrong.toLocaleString()} wrong)`
+      )}% of the time (${right.toLocaleString()} right. ${wrong.toLocaleString()} wrong) ${name}`
     );
+    results.push({
+      locale: correct,
+      right,
+      wrong
+    });
     // console.log({ wasEn, right, wrong });
     // return { wasEn, right, wrong };
     totalRight += right;
     totalWrong += wrong;
   });
+
+  console.log("\nOrdered by wrongs...");
+  results
+    .sort((a, b) => b.wrong - a.wrong)
+    .forEach(({ locale, right, wrong }) => {
+      const name = iso63933_to_name[locale] || locale;
+      const p = (100 * right) / (right + wrong);
+      console.log(
+        `${locale.padStart(3)}: right ${p.toFixed(
+          1
+        )}% of the time (${right.toLocaleString()} right. ${wrong.toLocaleString()} wrong) ${name}`
+      );
+    });
+
   console.log("\nIn total...");
   const p = (100 * totalRight) / (totalRight + totalWrong);
   console.log(

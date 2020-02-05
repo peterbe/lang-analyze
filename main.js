@@ -1,9 +1,11 @@
 const fs = require("fs");
 const path = require("path");
-var franc = require("franc");
-var langs = require("langs");
-var cheerio = require("cheerio");
+const franc = require("franc");
+const langs = require("langs");
+const cheerio = require("cheerio");
+const yaml = require("js-yaml");
 const convert3To1 = require("iso-639-3-to-1");
+const csv = require("@fast-csv/format");
 
 // const iso63931_to_iso63933 = {};
 const iso63933_to_name = {};
@@ -30,11 +32,11 @@ function walker(root, callback) {
 }
 
 const EXCLUDE_ARCHIVED = true;
-const ROOT = "/Users/peterbe/stumptown-renderer/content/files";
-// const LOCALES = ["sv-SE", "es"];
-const LOCALES = [];
-// const LOCALES = ["en-US"];
-// const LOCALES = ["sv-SE"];
+const ROOT = process.argv[2];
+if (!fs.statSync(ROOT).isDirectory()) {
+  throw new Error(`${ROOT} is not a directory`);
+}
+const LOCALES = process.argv.slice(3).map(x => x.toLowerCase());
 
 function getRootFolders() {
   const files = fs.readdirSync(ROOT);
@@ -53,28 +55,25 @@ function run() {
   let totalRight = 0;
   let totalWrong = 0;
   const results = [];
+  const suspects = [];
   getRootFolders().forEach(filepath => {
     let wasEn = 0;
     let right = 0;
     let wrong = 0;
-    const correct = path.basename(filepath).split("-")[0];
+    const locale = path.basename(filepath);
+    const correct = locale.split("-")[0];
     walker(filepath, (folder, files) => {
       if (files.includes("index.html") && files.includes("index.yaml")) {
+        const rel = folder.replace(filepath, "");
         if (EXCLUDE_ARCHIVED) {
-          const rel = folder.replace(filepath, "");
-          if (
-            rel.startsWith("/Achive/") ||
-            rel.startsWith("/User:") ||
-            rel.startsWith("/Talk:") ||
-            rel.startsWith("/User_talk:") ||
-            rel.startsWith("/Template_talk:") ||
-            rel.startsWith("/Project_talk:") ||
-            rel.startsWith("/Experiment:")
-          ) {
+          const start = rel.split("/")[1];
+          if (["archive", "mozilla", "mdn"].includes(start)) {
             return;
           }
         }
-        // console.log(folder);
+        if (rel.includes("doc_status")) {
+          console.log({ rel });
+        }
         const html = fs.readFileSync(path.join(folder, "index.html"), "utf8");
         const $ = cheerio.load(`<div id="_body">${html}</div>`);
         $(
@@ -125,6 +124,11 @@ function run() {
           // console.log({ prob });
           // console.log("\n----------------------------------------------\n\n");
           wrong++;
+          suspects.push({
+            folder,
+            prob,
+            locale
+          });
           if (prob === "en" && correct !== "en") {
             wasEn++;
           }
@@ -190,5 +194,39 @@ function run() {
     )}% of the time (${totalRight.toLocaleString()} right. ${totalWrong.toLocaleString()} wrong)`
   );
   console.log(`(${(totalRight + totalWrong).toLocaleString()} documents)`);
+
+  const rows = {};
+  for (let suspect of suspects) {
+    if (!(suspect.locale in rows)) {
+      rows[suspect.locale] = [];
+    }
+    let mdn_url = yaml.load(
+      fs.readFileSync(path.join(suspect.folder, "index.yaml"))
+    ).mdn_url;
+    rows[suspect.locale].push({
+      mdn_url,
+      locale: suspect.locale,
+      probability: suspect.prob
+    });
+  }
+  Object.entries(rows).forEach(([locale, suspects]) => {
+    const stream = csv.format({
+      delimiter: "\t"
+    });
+    const filename = `suspects.${locale}.csv`;
+    var wstream = fs.createWriteStream(filename);
+    stream.pipe(wstream);
+
+    stream.write(["URL", "PROBABLY"]);
+    for (let suspect of suspects) {
+      stream.write([
+        `https://wiki.developer.mozilla.org${suspect.mdn_url}`,
+        suspect.probability
+      ]);
+    }
+    stream.end();
+    wstream.end();
+    console.log(`Wrote ${filename}`);
+  });
 }
 run();

@@ -2,10 +2,38 @@
 # yarn lockfile v1
 
 
+"@fast-csv/format@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@fast-csv/format/-/format-4.0.2.tgz#7ed0ac63776e77c2e3502addf30a8acff79ed888"
+  integrity sha512-OqnJINuEdlmXTqEkSQXBCb2oR/4GcAV+Smy38q07Wdz2JSYw55O4McppteVcAYbp7eK+bgoha3ZGTC+R3GTUfg==
+  dependencies:
+    lodash.escaperegexp "^4.1.2"
+    lodash.isboolean "^3.0.3"
+    lodash.isequal "^4.5.0"
+    lodash.isfunction "^3.0.9"
+    lodash.isnil "^4.0.0"
+
+"@fast-csv/parse@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@fast-csv/parse/-/parse-4.0.2.tgz#f6d6e204521e1154e07575ca9c6617197fb29a04"
+  integrity sha512-QQ9Vqn/QWQ/IcxMz5TlhJcr89b0A0Tclo5P1JdkYrSZB4VvyOHspM/EHqNJ8p4smesLDxw0b4flMxsTITSBl0g==
+  dependencies:
+    lodash.escaperegexp "^4.1.2"
+    lodash.groupby "^4.6.0"
+    lodash.isfunction "^3.0.9"
+    lodash.isnil "^4.0.0"
+    lodash.isundefined "^3.0.1"
+    lodash.uniq "^4.5.0"
+
 "@types/node@*":
   version "13.1.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-13.1.2.tgz#fe94285bf5e0782e1a9e5a8c482b1c34465fa385"
   integrity sha512-B8emQA1qeKerqd1dmIsQYnXi+mmAzTB7flExjmy5X1aVAKFNNNDubkavwR13kR6JnpeLp3aLoJhwn9trWPAyFQ==
+
+"@types/node@^12.12.17":
+  version "12.12.26"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.26.tgz#213e153babac0ed169d44a6d919501e68f59dea9"
+  integrity sha512-UmUm94/QZvU5xLcUlNR8hA7Ac+fGpO1EG/a8bcWVz0P0LqtxFmun9Y2bbtuckwGboWJIT70DoWq1r3hb56n3DA==
 
 boolbase@~1.0.0:
   version "1.0.0"
@@ -103,10 +131,19 @@ entities@^2.0.0:
   resolved "https://registry.yarnpkg.com/entities/-/entities-2.0.0.tgz#68d6084cab1b079767540d80e56a39b423e4abf4"
   integrity sha512-D9f7V0JSRwIxlRI2mjMqufDrRDnx8p+eEOz7aUM9SuvF8gsBzra0/6tbjl1m8eQHrZlYj6PxqE00hZ1SAIKPLw==
 
-franc@4.1.1:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/franc/-/franc-4.1.1.tgz#767d5538708835db325f34a012461664e0fd5984"
-  integrity sha512-jy2DJOUx51LHnetxFBrsSTmi/YBx8YOmURHy9W8eC3ZylsQ612zSTD6sTEC8WBDfMG4ZUunglqJxP2WA5WeXGA==
+fast-csv@4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/fast-csv/-/fast-csv-4.0.2.tgz#ce01a7c433926512558ac18e15aee78683c674e1"
+  integrity sha512-ra9uIiXDEY1pRNnJJKPDtpL3ij9A1r4mCBef893yRkY4O4L0uWlpsZjEMPBME7Te9aqWNin6mbnqLG/QDpqw3A==
+  dependencies:
+    "@fast-csv/format" "^4.0.2"
+    "@fast-csv/parse" "^4.0.2"
+    "@types/node" "^12.12.17"
+
+franc@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/franc/-/franc-5.0.0.tgz#e2543f113a6b5d0a1a734cf782dd3d486215cbbe"
+  integrity sha512-ioKMLQlZv0T4qQ/AivMt8y8i4M3RWvVeOAm8y8SAjfcN+shtHVqR7NKAQAfQcrxWIbmfne4pRTcgNBcM0bj60A==
   dependencies:
     trigram-utils "^1.0.0"
 
@@ -136,6 +173,46 @@ langs@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/langs/-/langs-2.0.0.tgz#00c32ce48152a49a614450b9ba2632ab58a0a364"
   integrity sha1-AMMs5IFSpJphRFC5uiYyq1igo2Q=
+
+lodash.escaperegexp@^4.1.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/lodash.escaperegexp/-/lodash.escaperegexp-4.1.2.tgz#64762c48618082518ac3df4ccf5d5886dae20347"
+  integrity sha1-ZHYsSGGAglGKw99Mz11YhtriA0c=
+
+lodash.groupby@^4.6.0:
+  version "4.6.0"
+  resolved "https://registry.yarnpkg.com/lodash.groupby/-/lodash.groupby-4.6.0.tgz#0b08a1dcf68397c397855c3239783832df7403d1"
+  integrity sha1-Cwih3PaDl8OXhVwyOXg4Mt90A9E=
+
+lodash.isboolean@^3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/lodash.isboolean/-/lodash.isboolean-3.0.3.tgz#6c2e171db2a257cd96802fd43b01b20d5f5870f6"
+  integrity sha1-bC4XHbKiV82WgC/UOwGyDV9YcPY=
+
+lodash.isequal@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
+  integrity sha1-QVxEePK8wwEgwizhDtMib30+GOA=
+
+lodash.isfunction@^3.0.9:
+  version "3.0.9"
+  resolved "https://registry.yarnpkg.com/lodash.isfunction/-/lodash.isfunction-3.0.9.tgz#06de25df4db327ac931981d1bdb067e5af68d051"
+  integrity sha512-AirXNj15uRIMMPihnkInB4i3NHeb4iBtNg9WRWuK2o31S+ePwwNmDPaTL3o7dTJ+VXNZim7rFs4rxN4YU1oUJw==
+
+lodash.isnil@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/lodash.isnil/-/lodash.isnil-4.0.0.tgz#49e28cd559013458c814c5479d3c663a21bfaa6c"
+  integrity sha1-SeKM1VkBNFjIFMVHnTxmOiG/qmw=
+
+lodash.isundefined@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/lodash.isundefined/-/lodash.isundefined-3.0.1.tgz#23ef3d9535565203a66cefd5b830f848911afb48"
+  integrity sha1-I+89lTVWUgOmbO/VuDD4SJEa+0g=
+
+lodash.uniq@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.uniq/-/lodash.uniq-4.5.0.tgz#d0225373aeb652adc1bc82e4945339a842754773"
+  integrity sha1-0CJTc662Uq3BvILklFM5qEJ1R3M=
 
 lodash@^4.15.0:
   version "4.17.15"

@@ -5,7 +5,8 @@
   "license": "MIT",
   "dependencies": {
     "cheerio": "1.0.0-rc.3",
-    "franc": "4.1.1",
+    "fast-csv": "4.0.2",
+    "franc": "5.0.0",
     "iso-639-3-to-1": "1.0.0",
     "langs": "2.0.0"
   }

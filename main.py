@@ -48,8 +48,15 @@ def run(root, destination, locales, include_archive=False):
                 "pre,code,#Quick_Links,div.bc-data,div.hidden,"
                 "table.standard-table,li:empty,p:empty,div:empty,"
                 "#compat-desktop,#compat-mobile,table.compat-table,"
-                "div.blockIndicator.warning,span.inlineIndicator"
+                "div.blockIndicator.warning,span.inlineIndicator,"
+                ".overheadIndicator,.translationInProgress,"
+                ".blockIndicator.experimental"
             ).remove()
+            # What happens a LOT is that in some documents, the only thing
+            # that has tranlated are the <h2> headings. That's nice but if that's
+            # the only thing that's been translated, then it's misleading.
+            # E.g. https://developer.mozilla.org/bm/docs/Web/JavaScript/Reference/Errors/Property_access_denied
+            d("h2").remove()
             if "glossary" in slug:
                 d(".multiColumnList").remove()
             # One more time
@@ -82,14 +89,14 @@ def run(root, destination, locales, include_archive=False):
             else:
                 rights += 1
 
-            # # print((locale, guessed))
-            # import random
-
-            # if random.random() > 0.999 and wrong:
+            # # import random
+            # # print(repr(slug))
+            # if "Property_access_denied" in slug:
             #     print(f"  {file} ".center(100, "-"))
             #     print(text)
 
             #     print("_" * 100)
+            #     print((locale, guessed))
 
         t1 = time.time()
         p = 100 * wrongs / (wrongs + rights)

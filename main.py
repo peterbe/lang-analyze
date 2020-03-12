@@ -1,3 +1,5 @@
+import random
+import re
 import concurrent.futures
 import json
 import time
@@ -8,9 +10,48 @@ import yaml
 from guess_language import guess_language
 from pyquery import PyQuery as pq
 
+ACCEPTED_LOCALES = (
+    "en-US",  # English
+    "ar",  # Arabic
+    "bg",  # Bulgarian
+    "bm",  # Bambara
+    "bn",  # Bengali
+    "ca",  # Catalan
+    "de",  # German
+    "el",  # Greek
+    "es",  # Spanish
+    "fa",  # Persian
+    "fi",  # Finnish
+    "fr",  # French
+    "he",  # Hebrew
+    "hi-IN",  # Hindi (India)
+    "hu",  # Hungarian
+    "id",  # Indonesian
+    "it",  # Italian
+    "ja",  # Japanese
+    "kab",  # Kabyle
+    "ko",  # Korean
+    "ms",  # Malay
+    "my",  # Burmese
+    "nl",  # Dutch
+    "pl",  # Polish
+    "pt-PT",  # Portuguese (Portugal)
+    "pt-BR",  # Portuguese (Brazil)
+    "ru",  # Russian
+    "sv-SE",  # Swedish (Sweden)
+    "th",  # Thai
+    "tr",  # Turkish
+    "uk",  # Ukranian
+    "vi",  # Vietnamese
+    "zh-CN",  # Chinese (China)
+    "zh-TW",  # Chinese (Taiwan, Province of China)
+)
 
-def run(root, destination, locales, include_archive=False):
-    if not destination.is_dir():
+_proper_locales = {x.lower(): x for x in ACCEPTED_LOCALES}
+
+
+def run(root, destination, locales, include_archive=False, dry_run=False):
+    if not destination.is_dir() and not dry_run:
         destination.mkdir()
 
     root_folders = [
@@ -26,7 +67,11 @@ def run(root, destination, locales, include_archive=False):
         for folder in root_folders:
             futures.append(
                 executor.submit(
-                    process_folder, folder, destination, include_archive=include_archive
+                    process_folder,
+                    folder,
+                    destination,
+                    include_archive=include_archive,
+                    dry_run=dry_run,
                 )
             )
         for future in concurrent.futures.as_completed(futures):
@@ -51,8 +96,12 @@ def run(root, destination, locales, include_archive=False):
     print()
     print(f"Took {t1 - t0:.1f}s  ({took_total:.1f}s summed individually)")
 
+    with open("/tmp/all-suspects.json", "w") as f:
+        json.dump(all, f, indent=2)
 
-def process_folder(folder, destination, include_archive):
+
+def process_folder(folder, destination, include_archive, dry_run):
+    actual_locale = _proper_locales.get(folder.name, folder.name)
     locale = folder.name.split("-")[0]
     wrongs = rights = 0
     suspects = []
@@ -62,7 +111,6 @@ def process_folder(folder, destination, include_archive):
         with open(file.parent / "index.yaml") as f:
             metadata = yaml.safe_load(f)
 
-        actual_locale = metadata["locale"]
         slug = metadata["slug"]
         every_possible_slugs.append(metadata["slug"])
 
@@ -81,7 +129,7 @@ def process_folder(folder, destination, include_archive):
             "#compat-desktop,#compat-mobile,table.compat-table,"
             "div.blockIndicator.warning,span.inlineIndicator,"
             ".overheadIndicator,.translationInProgress,"
-            ".blockIndicator.experimental"
+            ".blockIndicator.experimental,div.prevnext"
         ).remove()
         # What happens a LOT is that in some documents, the only thing
         # that has tranlated are the <h2> headings. That's nice but if that's
@@ -98,13 +146,53 @@ def process_folder(folder, destination, include_archive):
             continue
         text = bleach.clean(text, tags=[], strip=True)
 
+        # Remove any all-caps words
+        # all_caps_words = re.findall(r"\b[A-Z][A-Z]+\b", text)
+        text = re.sub(r"\b[A-Z][A-Z]+\b", "", text)
+
+        # Basic cleaning
+        text = text.replace("&gt;", ">").replace("&lt;", "<")
+
         lines = [
             x.strip() for x in text.splitlines() if x.strip() and len(x.strip()) > 1
         ]
-        text = "\n".join(lines)
-        guessed = guess_language(text)
+        if len(lines) > 20:
 
-        wrong = locale.lower() != guessed.lower()
+            first_half = lines[: len(lines) // 2]
+            second_half = lines[len(lines) // 2 :]
+            first_text = "\n".join(first_half)
+            second_text = "\n".join(second_half)
+            first_guessed = guess_language(first_text)
+            second_guessed = guess_language(second_text)
+
+            wrong = False
+            if locale.lower() != first_guessed.lower():
+                wrong = True
+                guessed = first_guessed
+            elif locale.lower() != second_guessed.lower():
+                wrong = True
+                guessed = second_guessed
+
+            # if (locale.lower() != first_guessed.lower()) != (
+            #     locale.lower() != second_guessed.lower()
+            # ):
+            #     print("DISAGREEDMENT", locale, first_guessed, second_guessed)
+            #     # print(repr(slug))
+            #     if random.random() > 0.5:
+            #         print(f"  {file} ".center(100, "-"))
+            #         text = "\n".join(lines)
+            #         print(text)
+            #         print()
+            #         print(len(lines), "LINES")
+
+            #         print("_" * 180)
+            #         print((locale, guessed))
+
+        else:
+            text = "\n".join(lines)
+            guessed = guess_language(text)
+            wrong = locale.lower() != guessed.lower()
+
         if wrong:
             wrongs += 1
 
@@ -120,11 +208,12 @@ def process_folder(folder, destination, include_archive):
         else:
             rights += 1
 
-        # # import random
         # # print(repr(slug))
-        # if "Property_access_denied" in slug:
+        # if random.random() > 0.99:
         #     print(f"  {file} ".center(100, "-"))
         #     print(text)
+        #     print()
+        #     print(len(lines), "LINES")
 
         #     print("_" * 100)
         #     print((locale, guessed))
@@ -136,7 +225,7 @@ def process_folder(folder, destination, include_archive):
         f"{wrongs:,} of {wrongs+rights:,} ({p:.1f}%s) are wrong probably - {t1 - t0:.1f}s",
     )
 
-    if suspects:
+    if suspects and not dry_run:
         suspect_destination = destination / f"{actual_locale}.json"
         for suspect in suspects:
             # If there is any other slug that starts with this
@@ -168,13 +257,20 @@ def main():
     parser.add_argument(
         "--include-archive", help="include archive", action="store_true", default=False
     )
+    parser.add_argument(
+        "--dry-run",
+        help="dry run, don't actually write .json files",
+        action="store_true",
+        default=False,
+    )
     parser.add_argument("locale", help="specific locales", nargs="*")
     args = parser.parse_args()
     run(
         Path(args.contentdir),
         Path(args.destinationdir),
         args.locale,
-        args.include_archive,
+        include_archive=args.include_archive,
+        dry_run=args.dry_run,
     )
 
 
